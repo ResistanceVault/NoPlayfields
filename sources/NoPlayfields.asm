@@ -1316,9 +1316,10 @@ pt_effects_handler
 	tst.w	pt_effects_handler_active(a3)
 	bne.s	pt_effects_handler_quit
 	move.b	n_cmdlo(a2),d0
-	cmp.b	#$10,d0
+	lsr.b	#4,d0
+	cmp.b	#$1,d0
 	beq.s	pt_start_blind_fader_in
-	cmp.b	#$20,d0
+	cmp.b	#$2,d0
 	beq.s	pt_start_scrolltext
 pt_effects_handler_quit
 	rts
