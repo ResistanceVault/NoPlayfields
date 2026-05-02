@@ -101,8 +101,6 @@ workbench_start_enabled		EQU TRUE
 screen_fader_enabled		EQU TRUE
 text_output_enabled		EQU FALSE
 
-open_border_enabled		EQU TRUE
-
 pt_ciatiming_enabled		EQU TRUE
 pt_usedfx			EQU %1111110101011110
 pt_usedefx			EQU %0000000001000000
@@ -123,11 +121,7 @@ pt_metrospeedbits		EQU pt_metrospeed4th
 ; Vert-Colorscroll 3.1.1.1
 vcs3111_bplam_table_length_256	EQU TRUE
 
-	IFEQ open_border_enabled
 dma_bits			EQU DMAF_SPRITE|DMAF_BLITTER|DMAF_COPPER|DMAF_MASTER|DMAF_SETCLR
-	ELSE
-dma_bits			EQU DMAF_SPRITE|DMAF_BLITTER|DMAF_COPPER|DMAF_RASTER|DMAF_MASTER|DMAF_SETCLR
-	ENDC
 
 	IFEQ pt_ciatiming_enabled
 intena_bits			EQU INTF_EXTER|INTF_INTEN|INTF_SETCLR
@@ -150,15 +144,9 @@ pf1_depth1			EQU 0
 pf1_x_size2			EQU 0
 pf1_y_size2			EQU 0
 pf1_depth2			EQU 0
-	IFEQ open_border_enabled
 pf1_x_size3			EQU 0
 pf1_y_size3			EQU 0
 pf1_depth3			EQU 0
-	ELSE
-pf1_x_size3			EQU 32
-pf1_y_size3			EQU 1
-pf1_depth3			EQU 1
-	ENDC
 pf1_colors_number		EQU 0	; 256
 
 pf2_x_size1			EQU 0
@@ -237,9 +225,7 @@ display_window_vstop		EQU VSTOP_256_LINES
 
 pf1_plane_width			EQU pf1_x_size3/8
 data_fetch_width		EQU pixel_per_line/8
-pf1_plane_moduli		EQU -(pf1_plane_width-(pf1_plane_width-data_fetch_width))
 
-	IFEQ open_border_enabled
 diwstrt_bits			EQU ((display_window_vstart&$ff)*DIWSTRTF_V0)|(display_window_hstart&$ff)
 diwstop_bits			EQU ((display_window_vstop&$ff)*DIWSTOPF_V0)|(display_window_hstop&$ff)
 bplcon0_bits			EQU BPLCON0F_ECSENA|((pf_depth>>3)*BPLCON0F_BPU3)|BPLCON0F_COLOR|((pf_depth&$07)*BPLCON0F_BPU0)
@@ -248,28 +234,12 @@ bplcon3_bits2			EQU bplcon3_bits1|BPLCON3F_LOCT
 bplcon4_bits			EQU (BPLCON4F_OSPRM4*spr_odd_color_table_select)|(BPLCON4F_ESPRM4*spr_even_color_table_select)
 diwhigh_bits			EQU (((display_window_hstop&$100)>>8)*DIWHIGHF_HSTOP8)|(((display_window_vstop&$700)>>8)*DIWHIGHF_VSTOP8)|(((display_window_hstart&$100)>>8)*DIWHIGHF_HSTART8)|((display_window_vstart&$700)>>8)
 fmode_bits			EQU FMODEF_SPR32
-	ELSE
-diwstrt_bits			EQU ((display_window_vstart&$ff)*DIWSTRTF_V0)|(display_window_hstart&$ff)
-diwstop_bits			EQU ((display_window_vstop&$ff)*DIWSTOPF_V0)|(display_window_hstop&$ff)
-ddfstrt_bits			EQU DDFSTRT_OVERSCAN_32_PIXEL
-ddfstop_bits			EQU DDFSTOP_OVERSCAN_32_PIXEL_MIN
-bplcon0_bits			EQU BPLCON0F_ECSENA|((pf_depth>>3)*BPLCON0F_BPU3)|BPLCON0F_COLOR?((pf_depth&$07)*BPLCON0F_BPU0)
-bplcon3_bits1			EQU BPLCON3F_SPRES0
-bplcon3_bits2			EQU bplcon3_bits1|BPLCON3F_LOCT
-bplcon4_bits			EQU (BPLCON4F_OSPRM4*spr_odd_color_table_select)|(BPLCON4F_ESPRM4*spr_even_color_table_select)
-diwhigh_bits			EQU (((display_window_hstop&$100)>>8)*DIWHIGHF_HSTOP8)|(((display_window_vstop&$700)>>8)*DIWHIGHF_VSTOP8)|(((display_window_hstart&$100)>>8)*DIWHIGHF_HSTART8)|((display_window_vstart&$700)>>8)
-fmode_bits			EQU FMODEF_SPR32
-	ENDC
 color00_bits			EQU $001122
 
 cl2_display_x_size		EQU 352
 cl2_display_width		EQU cl2_display_x_size/8
 cl2_display_y_size		EQU visible_lines_number
-	IFEQ open_border_enabled
 cl2_hstart1			EQU display_window_hstart-(1*CMOVE_SLOT_PERIOD)-4
-	ELSE
-cl2_hstart1			EQU display_window_hstart-4
-	ENDC
 cl2_vstart1			EQU MINROW
 cl2_hstart2			EQU 0
 cl2_vstart2			EQU beam_position&CL_Y_WRAPPING
@@ -400,9 +370,7 @@ cl1_copperlist_size		RS.B 0
 cl2_extension1			RS.B 0
 
 cl2_ext1_WAIT			RS.L 1
-	IFEQ open_border_enabled 
 cl2_ext1_BPL1DAT		RS.L 1
-	ENDC
 cl2_ext1_BPLCON4_1		RS.L 1
 cl2_ext1_BPLCON4_2		RS.L 1
 cl2_ext1_BPLCON4_3		RS.L 1
@@ -646,7 +614,6 @@ vst_image			RS.L 1
 vst_text_table_start		RS.W 1
 
 ; Blind-Fader
-	IFEQ open_border_enabled
 bf_registers_table_start	RS.W 1
 
 ; Blind-Fader-In
@@ -654,7 +621,6 @@ bfi_active			RS.W 1
 
 ; Blind-Fader-Out
 bfo_active			RS.W 1
-	ENDC
 
 ; Main
 stop_fx_active			RS.W 1
@@ -694,15 +660,13 @@ init_main_variables
 	move.w	d0,vst_text_table_start(a3)
 
 ; Blind-Fader
-	IFEQ open_border_enabled
-		move.w	d0,bf_registers_table_start(a3)
+	move.w	d0,bf_registers_table_start(a3)
 
 ; Blind-Fader-In
-		move.w	d1,bfi_active(a3)
+	move.w	d1,bfi_active(a3)
 
 ; Blind-Fader-Out
-		move.w	d1,bfo_active(a3)
-	ENDC
+	move.w	d1,bfo_active(a3)
 
 ; Main
 	move.w	d1,stop_fx_active(a3)
@@ -883,28 +847,13 @@ cl1_init_copperlist
 	move.l	cl1_display(a3),a0
 	bsr.s	cl1_init_playfield_props
 	bsr.s	cl1_init_sprite_pointers
-	IFEQ open_border_enabled
-		COP_MOVEQ 0,COPJMP2
-		bsr	cl1_set_sprite_pointers
-	ELSE
-		bsr.s	cl1_init_plane_pointers
-		COP_MOVEQ 0,COPJMP2
-		bsr	cl1_set_sprite_pointers
-		bsr	cl1_set_plane_pointers
-	ENDC
+	COP_MOVEQ 0,COPJMP2
+	bsr	cl1_set_sprite_pointers
 	rts
 
-	IFEQ open_border_enabled
-		COP_INIT_PLAYFIELD_REGISTERS cl1,NOBITPLANESSPR
-	ELSE
-		COP_INIT_PLAYFIELD_REGISTERS cl1
-		COP_INIT_BITPLANE_POINTERS cl1
-		COP_SET_BITPLANE_POINTERS cl1,display,pf1_depth3
-	ENDC
-
+	COP_INIT_PLAYFIELD_REGISTERS cl1
 
 	COP_INIT_SPRITE_POINTERS cl1
-
 
 	COP_SET_SPRITE_POINTERS cl1,display,spr_number
 
@@ -918,12 +867,9 @@ cl2_init_copperlist
 	bsr	cl2_copy_copperlist
 	rts
 
-
-	COP_INIT_BPLCON4_CHUNKY cl2,cl2_hstart1,cl2_vstart1,cl2_display_x_size,cl2_display_y_size,open_border_enabled,FALSE,FALSE,NOOP<<16
-
+	COP_INIT_BPLCON4_CHUNKY cl2,cl2_hstart1,cl2_vstart1,cl2_display_x_size,cl2_display_y_size,TRUE,FALSE,FALSE,NOOP<<16
 
 	COP_INIT_COPINT cl2,cl2_hstart2,cl2_vstart2
-
 
 	COPY_COPPERLIST cl2,2
 
@@ -950,10 +896,8 @@ beam_routines
 	bsr	vert_scrolltext
 	bsr	get_channels_amplitudes
 	bsr	vert_colorscroll3111
-	IFEQ open_border_enabled
-		bsr	blind_fader_in
-		bsr	blind_fader_out
-	ENDC
+	bsr	blind_fader_in
+	bsr	blind_fader_out
 	bsr	mouse_handler
 	tst.w	stop_fx_active(a3)
 	bne	beam_routines
@@ -966,10 +910,10 @@ beam_routines
 	SET_COPPERLIST cl2
 
 
-	SWAP_SPRITES spr_swap_number,2
+	SWAP_SPRITES spr_swap_number,2	; index 2
 
 
-	SET_SPRITES spr_swap_number,2
+	SET_SPRITES cl1,spr_swap_number,2 ; index 2
 
 
 	CNOP 0,4
@@ -1151,114 +1095,112 @@ vert_scrolltext_init
 	GET_NEW_CHAR_IMAGE.W vst
 
 
-	IFEQ open_border_enabled
-		CNOP 0,4
+	CNOP 0,4
 blind_fader_in
-		move.l	a4,-(a7)
-		tst.w	bfi_active(a3)
-		bne.s	blind_fader_in_quit
-		move.w	bf_registers_table_start(a3),d2
-		move.w	d2,d0
-		addq.w	#bf_speed,d0	; increase table start
-		cmp.w	#bf_registers_table_length/2,d0 ; end of table ?
-		ble.s	blind_fader_in_skip
-		move.w	#FALSE,bfi_active(a3)
+	move.l	a4,-(a7)
+	tst.w	bfi_active(a3)
+	bne.s	blind_fader_in_quit
+	move.w	bf_registers_table_start(a3),d2
+	move.w	d2,d0
+	addq.w	#bf_speed,d0		; increase table start
+	cmp.w	#bf_registers_table_length/2,d0 ; end of table ?
+	ble.s	blind_fader_in_skip
+	move.w	#FALSE,bfi_active(a3)
 blind_fader_in_skip
-		move.w	d0,bf_registers_table_start(a3)
-		MOVEF.W	bf_registers_table_length-1,d3
-		MOVEF.L cl2_extension1_size,d4
-		lea	bf_registers_table(pc),a0
-		IFNE cl2_size1
-			move.l	cl2_construction1(a3),a1
-			ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a1
-		ENDC
-		IFNE cl2_size2
-			move.l	cl2_construction2(a3),a2
-			ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a2
-		ENDC
-		move.l	cl2_display(a3),a4
-		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a4
-		moveq	#bf_lamellas_number-1,d7
-blind_fader_in_loop1
-		move.w	d2,d1		; table start
-		moveq	#bf_lamella_height-1,d6
-blind_fader_in_loop2
-		move.w	(a0,d1.w*2),d0	; register offset
-		addq.w	#bf_step1,d1	; next entry
-		IFNE cl2_size1
-			move.w	d0,(a1)	; CMOVE 0,offset
-			add.l	d4,a1	; next line
-		ENDC
-		IFNE cl2_size2
-			move.w	d0,(a2)
-			add.l	d4,a2
-		ENDC
-		move.w	d0,(a4)
-		and.w	d3,d1		; remove overflow
-		add.l	d4,a4
-		dbf	d6,blind_fader_in_loop2
-		addq.w	#bf_step2,d2	; increase table start
-		and.w	d3,d2		; remove overflow
-		dbf	d7,blind_fader_in_loop1
-blind_fader_in_quit
-		move.l	(a7)+,a4
-		rts
-
-
-		CNOP 0,4
-blind_fader_out
-		move.l	a4,-(a7)
-		tst.w	bfo_active(a3)
-		bne.s	blind_fader_out_quit
-		move.w	bf_registers_table_start(a3),d2
-		move.w	d2,d0
-		subq.w	#bf_speed,d0		; decrease table start
-		bpl.s	blind_fader_out_skip1
-		move.w	#FALSE,bfo_active(a3)
-		bra.s	blind_fader_out_skip2
-		CNOP 0,4
-blind_fader_out_skip1
-		move.w	d0,bf_registers_table_start(a3)
-blind_fader_out_skip2
-		MOVEF.W	bf_registers_table_length-1,d3
-		MOVEF.L cl2_extension1_size,d4
-		lea	bf_registers_table(pc),a0
-		IFNE cl2_size1
-			move.l	cl2_construction1(a3),a1
-			ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a1
-		ENDC
-		IFNE cl2_size2
-			move.l	cl2_construction2(a3),a2
-			ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a2
-		ENDC
-		move.l	cl2_display(a3),a4
-		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a4
-		moveq	#bf_lamellas_number-1,d7
-blind_fader_out_loop1
-		move.w	d2,d1		; table start
-		moveq	#bf_lamella_height-1,d6
-blind_fader_out_loop2
-		move.w	(a0,d1.w*2),d0	; register offset
-		addq.w	#bf_step1,d1	; next entry
-		IFNE cl2_size1
-			move.w	d0,(a1)	; CMOVE 0,offset
-			add.l	d4,a1	; next line
-		ENDC
-		IFNE cl2_size2
-			move.w	d0,(a2)
-			add.l	d4,a2
-		ENDC
-		move.w	d0,(a4)
-		and.w	d3,d1		; remove overflow
-		add.l	d4,a4
-		dbf	d6,blind_fader_out_loop2
-		addq.w	#bf_step2,d2	; increase table start
-		and.w	d3,d2		; remove overflow
-		dbf	d7,blind_fader_out_loop1
-blind_fader_out_quit
-		move.l	(a7)+,a4
-		rts
+	move.w	d0,bf_registers_table_start(a3)
+	MOVEF.W	bf_registers_table_length-1,d3
+	MOVEF.L cl2_extension1_size,d4
+	lea	bf_registers_table(pc),a0
+	IFNE cl2_size1
+		move.l	cl2_construction1(a3),a1
+		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a1
 	ENDC
+	IFNE cl2_size2
+	move.l	cl2_construction2(a3),a2
+		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a2
+	ENDC
+	move.l	cl2_display(a3),a4
+	ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a4
+	moveq	#bf_lamellas_number-1,d7
+blind_fader_in_loop1
+	move.w	d2,d1			; table start
+	moveq	#bf_lamella_height-1,d6
+blind_fader_in_loop2
+	move.w	(a0,d1.w*2),d0		; register offset
+	addq.w	#bf_step1,d1		; next entry
+	IFNE cl2_size1
+		move.w	d0,(a1)		; CMOVE 0,offset
+		add.l	d4,a1		; next line
+	ENDC
+	IFNE cl2_size2
+		move.w	d0,(a2)
+		add.l	d4,a2
+	ENDC
+	move.w	d0,(a4)
+	and.w	d3,d1			; remove overflow
+	add.l	d4,a4
+	dbf	d6,blind_fader_in_loop2
+	addq.w	#bf_step2,d2		; increase table start
+	and.w	d3,d2			; remove overflow
+	dbf	d7,blind_fader_in_loop1
+blind_fader_in_quit
+	move.l	(a7)+,a4
+	rts
+
+
+	CNOP 0,4
+blind_fader_out
+	move.l	a4,-(a7)
+	tst.w	bfo_active(a3)
+	bne.s	blind_fader_out_quit
+	move.w	bf_registers_table_start(a3),d2
+	move.w	d2,d0
+	subq.w	#bf_speed,d0		; decrease table start
+	bpl.s	blind_fader_out_skip1
+	move.w	#FALSE,bfo_active(a3)
+	bra.s	blind_fader_out_skip2
+	CNOP 0,4
+blind_fader_out_skip1
+	move.w	d0,bf_registers_table_start(a3)
+blind_fader_out_skip2
+	MOVEF.W	bf_registers_table_length-1,d3
+	MOVEF.L cl2_extension1_size,d4
+	lea	bf_registers_table(pc),a0
+	IFNE cl2_size1
+		move.l	cl2_construction1(a3),a1
+		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a1
+	ENDC
+	IFNE cl2_size2
+		move.l	cl2_construction2(a3),a2
+		ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a2
+	ENDC
+	move.l	cl2_display(a3),a4
+	ADDF.W	cl2_extension1_entry+cl2_ext1_BPL1DAT,a4
+	moveq	#bf_lamellas_number-1,d7
+blind_fader_out_loop1
+	move.w	d2,d1			; table start
+	moveq	#bf_lamella_height-1,d6
+blind_fader_out_loop2
+	move.w	(a0,d1.w*2),d0		; register offset
+	addq.w	#bf_step1,d1		; next entry
+	IFNE cl2_size1
+		move.w	d0,(a1)		; CMOVE 0,offset
+		add.l	d4,a1		; next line
+	ENDC
+	IFNE cl2_size2
+		move.w	d0,(a2)
+		add.l	d4,a2
+	ENDC
+	move.w	d0,(a4)
+	and.w	d3,d1			; remove overflow
+	add.l	d4,a4
+	dbf	d6,blind_fader_out_loop2
+	addq.w	#bf_step2,d2		; increase table start
+	and.w	d3,d2			; remove overflow
+	dbf	d7,blind_fader_out_loop1
+blind_fader_out_quit
+	move.l	(a7)+,a4
+	rts
 
 
 	CNOP 0,4
@@ -1301,7 +1243,9 @@ vertb_interrupt_server
 		rts
 
 		PT_FADE_OUT_VOLUME stop_fx_active
-		CNOP 0,4
+	ELSE
+		bsr.s	pt_PlayMusic
+		rts
 	ENDC
 
 	IFD PROTRACKER_VERSION_2 
@@ -1431,16 +1375,14 @@ vst_chars_image_pointers
 
 
 ; Blind-Fader
-	IFEQ open_border_enabled
-		CNOP 0,2
+	CNOP 0,2
 bf_registers_table
-		REPT bf_registers_table_length/2
-		DC.W NOOP
-		ENDR
-		REPT bf_registers_table_length/2
-		DC.W BPL1DAT
-		ENDR
-	ENDC
+	REPT bf_registers_table_length/2
+	DC.W NOOP
+	ENDR
+	REPT bf_registers_table_length/2
+	DC.W BPL1DAT
+	ENDR
 
 
 	INCLUDE "sys-variables.i"
